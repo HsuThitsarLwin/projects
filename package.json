@@ -1,0 +1,46 @@
+{
+  "name": "redeemnnow-app",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173"
+  },
+  "dependencies": {
+    "@fawmi/vue-google-maps": "^0.9.79",
+    "@fortawesome/fontawesome-svg-core": "^6.2.0",
+    "@fortawesome/free-brands-svg-icons": "^6.2.0",
+    "@fortawesome/free-regular-svg-icons": "^6.2.0",
+    "@fortawesome/free-solid-svg-icons": "^6.2.0",
+    "@fortawesome/vue-fontawesome": "^3.0.1",
+    "@iconify/vue": "^3.2.1",
+    "@vuelidate/core": "2.0.0-alpha.41",
+    "@vuelidate/validators": "2.0.0-alpha.29",
+    "body-parser": "^1.20.2",
+    "bootstrap": "^5.2.2",
+    "bootstrap-icons": "^1.10.3",
+    "bootstrap-vue-3": "^0.4.7",
+    "bs5-lightbox": "^1.8.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-graphql": "^0.12.0",
+    "graphql": "^15.8.0",
+    "gsap": "^3.10.4",
+    "isomorphic-fetch": "^3.0.0",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.2.0",
+    "pinia": "^2.0.14",
+    "sequelize": "^6.30.0",
+    "vue": "^3.2.38",
+    "vue-easy-lightbox": "^1.10.0",
+    "vue-number-animation": "^1.1.2",
+    "vue-router": "^4.0.13",
+    "vue3-google-login": "^2.0.12",
+    "vue3-google-map": "^0.15.0",
+    "vue3-google-oauth2": "^1.0.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^3.0.3",
+    "vite": "^3.0.9"
+  }
+}
