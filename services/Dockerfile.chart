@@ -1,0 +1,6 @@
+FROM python:3-slim
+WORKDIR /usr/src/app
+COPY chart_req.txt ./
+RUN python -m pip install --no-cache-dir -r chart_req.txt
+COPY ./chart.py ./
+CMD [ "python", "./chart.py" ]

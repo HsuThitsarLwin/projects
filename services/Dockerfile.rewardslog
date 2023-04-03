@@ -1,0 +1,6 @@
+FROM python:3-slim
+WORKDIR /usr/src/app
+COPY amqp_req.txt ./
+RUN python -m pip install --no-cache-dir -r amqp_req.txt
+COPY ./rewardslog.py ./amqp_setup.py ./
+CMD [ "python", "./rewardslog.py" ]

@@ -1,0 +1,266 @@
+version: '3.8'
+
+volumes:
+  rabbitmq_data:
+  pgdata:
+  kongadata:
+
+services:
+  ###################################
+  # Reward: The reward microservice
+  ###################################
+  reward:
+    build:
+      context: ./
+      dockerfile: Dockerfile.reward
+    hostname: reward
+    image: jxffso/reward:1.1
+    restart: always
+    environment:
+      # dbURL: mysql+mysqlconnector://esd_t7:root@host.docker.internal:3306/redeemNow_rewards
+      dbURL: mysql+mysqlconnector://esd_t7:root@host.docker.internal:8889/redeemNow_rewards
+      PYTHONUNBUFFERED: 1
+    ports:
+      - '5000:5000'
+
+  ####################################
+  # RabbitMQ: The messaging broker
+  ####################################
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    restart: always
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  ####################################
+  # Email: The email service
+  ####################################
+  email:
+    build:
+      context: ./
+      dockerfile: Dockerfile.email_api
+    hostname: email
+    image: jxffso/email_api:1.1
+    restart: always
+    depends_on:
+      - rabbitmq
+    environment:
+      rabbit_host: rabbitmq
+      rabbit_port: 5672
+      PYTHONUNBUFFERED: 1
+
+  ####################################
+  # Send Advertisement: The send advertisment service
+  ####################################
+  sendadvert:
+    build:
+      context: ./
+      dockerfile: Dockerfile.sendAdvert
+    hostname: sendadvert
+    image: jxffso/send_advert:1.1
+    restart: always
+    depends_on:
+      - rabbitmq
+    environment:
+      rabbit_host: rabbitmq
+      rabbit_port: 5672
+      PYTHONUNBUFFERED: 1
+
+  #######################################################
+  # Customer: The customer Record microservice 5200
+  #######################################################
+  customer:
+    build:
+      context: ./
+      dockerfile: Dockerfile.customer
+    hostname: customer
+    image: jxffso/customer:1.1
+    restart: always
+    environment:
+      db_name: redeemNow_customer
+      username: esd_t7
+      password: 'root'
+      port: 8889
+      host: host.docker.internal
+      PYTHONUNBUFFERED: 1
+    ports:
+      - '5200:5200'
+
+  #################################################
+  # Rewards Log: The Rewards Log microservice 5400
+  #################################################
+  rewardslog:
+    build:
+      context: ./
+      dockerfile: Dockerfile.rewardslog
+    hostname: rewardslog
+    image: jxffso/rewardslog:1.1
+    restart: always
+    depends_on:
+      - rabbitmq
+    environment:
+      rabbit_host: rabbitmq
+      rabbit_port: 5672
+      # dbURL: mysql+mysqlconnector://esd_t7:root@host.docker.internal:3306/redeemNow_rewardslog
+      dbURL: mysql+mysqlconnector://esd_t7:root@host.docker.internal:8889/redeemNow_rewardslog
+      PYTHONUNBUFFERED: 1
+    ports:
+      - '5400:5400'
+
+  ###################################
+  # Redeem Rewards : The redeem rewards microservice
+  ###################################
+  redeemRewards:
+    build:
+      context: ./
+      dockerfile: Dockerfile.redeemRewards
+    hostname: redeemrewards
+    image: jxffso/redeemrewards:1.1
+    restart: always
+    depends_on:
+      - rabbitmq
+      - reward
+      - customer
+      - rewardslog
+      - email
+    environment:
+      rabbit_host: rabbitmq
+      rabbit_port: 5672
+      PYTHONUNBUFFERED: 1
+    ports:
+      - '5800:5800'
+
+  ###############################################
+  # Create Special Offfer: The special offer microservice
+  ###############################################
+  createspecialoffer:
+    build:
+      context: ./
+      dockerfile: Dockerfile.createspecialOffer
+    hostname: createspecialoffer
+    image: jxffso/createspecialoffer:1.1
+    restart: always
+    depends_on:
+      - customer
+      - reward
+      - sendadvert
+      - email
+      - rabbitmq
+    environment:
+      rabbit_host: rabbitmq
+      rabbit_port: 5672
+      PYTHONUNBUFFERED: 1
+    ports:
+      - '5900:5900'
+
+  ###############################################
+  # Aggregate Data: Data aggregation service using GraphQL
+  ###############################################
+  aggregatedata:
+    build:
+      context: ./
+      dockerfile: Dockerfile.aggregateData
+    hostname: aggregatedata
+    image: jxffso/aggregatedata:1.1
+    restart: always
+    depends_on:
+      - customer
+      - reward
+      - rewardslog
+    ports:
+      - '4010:4010'
+
+  ###############################################
+  # Chart: This service is used to call the aggregateData to visualize charts
+  ###############################################
+  chart:
+    build:
+      context: ./
+      dockerfile: Dockerfile.chart
+    hostname: chart
+    image: jxffso/chart:1.1
+    restart: always
+    depends_on:
+      - aggregatedata
+    ports:
+      - '4020:4020'
+
+  #######################################
+  # Postgres: The database used by Kong
+  #######################################
+  kong-database:
+    image: postgres:9.6
+    platform: linux/amd64
+    restart: always
+    environment:
+      POSTGRES_DB: kong
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'kong']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  #######################################
+  # Kong database migration
+  #######################################
+  kong-migration:
+    image: kong:2.0.4
+    platform: linux/amd64
+    command: 'kong migrations bootstrap'
+    restart: on-failure
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: password
+    depends_on:
+      - kong-database
+
+  #######################################
+  # Kong: The API Gateway
+  #######################################
+  kong:
+    image: kong:2.0.4
+    platform: linux/amd64
+    restart: always
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: password
+      KONG_PROXY_LISTEN: 0.0.0.0:8000
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+    depends_on:
+      - kong-migration
+    ports:
+      - '8000:8000'
+
+  #######################################
+  # Konga: Kong GUI
+  #######################################
+  konga:
+    image: pantsel/konga
+    platform: linux/amd64
+    restart: always
+    environment:
+      DB_ADAPTER: postgres
+      DB_HOST: kong-database
+      DB_USER: kong
+      DB_PASSWORD: password
+      DB_DATABASE: konga_db
+    depends_on:
+      - kong
+    ports:
+      - '1337:1337'
+    volumes:
+      - kongadata:/app/kongadata

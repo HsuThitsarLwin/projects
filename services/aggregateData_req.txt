@@ -1,0 +1,6 @@
+Flask==2.2.2
+graphene==2.1.9
+Flask-GraphQL==2.0.1
+Flask-Cors==3.0.10
+requests==2.25.1
+

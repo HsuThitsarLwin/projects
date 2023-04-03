@@ -1,0 +1,92 @@
+@import "./base.css";
+
+#app {
+  /* max-width: 1280px; */
+  /* margin: 0 auto; */
+  /* padding: 2rem; */
+
+  font-weight: normal;
+}
+
+a,
+.green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+ /* BUTTON FOR LOGIN AND SIGN UP */
+
+ .form-control {
+  /* opacity: 0.4; */
+  /* border: 0.2px solid rgba(0, 0, 0, 0.01); */
+  border-radius: 10px;
+}
+
+
+.form-floating {
+    position: relative;
+}
+
+.icon {
+    /* position: absolute; */
+    /* top: calc(40%); */
+    /* left: 1.25rem; */
+    /* z-index: 2; */
+}
+
+.form-floating label,
+.form-floating .form-control {
+    /* left: .5rem; */
+    /* padding-left: 3.5rem; */
+}
+
+/* @media (min-width: 1024px) {
+  body {
+    display: flex;
+    place-items: center;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 2rem;
+  }
+} */
+
+.nav-link:hover {
+  /* color: #dce775; */
+  background-color: transparent;
+}
+
+.glass {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.1)
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 22px 0 rgba(0, 0, 0, 0.2);
+}
+
+.btn:hover {
+  background-color: #4e5ff4;
+}
+
+.btn {
+  background-color: #3B4F7D;
+  border: none;
+}
+
+.nav-link-org:hover {
+  text-decoration: underline;
+}
